@@ -39,6 +39,7 @@
   let tProceso = null;
   let tBusqueda = null;
   let contador = 0;
+  let ultimaFirma = '';
   /** elemento-bloque → { clave, hablante, texto, confirmado, entradaId, hora, timer } */
   const estados = new Map();
 
@@ -206,8 +207,11 @@
 
   /** Reunión según la URL actual: una por código y día. */
   function reunionActual() {
+    // Si la URL no tiene el formato abc-defg-hij (apodos de reunión, etc.),
+    // se usa el primer segmento de la ruta como código.
     const m = SEL.meetingCode.exec(location.pathname);
-    const code = m ? m[1].toLowerCase() : 'sin-codigo';
+    const seg = location.pathname.split('/')[1] || '';
+    const code = (m ? m[1] : seg.replace(/[^\w-]/g, '')).toLowerCase() || 'sin-codigo';
     const d = new Date();
     const dia = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
     return { id: `${code}_${dia}`, code };
@@ -306,6 +310,14 @@
       if (datos) actualizarEstado(bloque, datos);
     }
 
+    // Debug: avisa cuando cambia la cantidad de bloques/lecturas válidas.
+    const firma = `${bloques.length}/${bloques.filter((b) => leerBloque(b)).length}`;
+    if (firma !== ultimaFirma) {
+      ultimaFirma = firma;
+      DBG.log(`bloques encontrados: ${bloques.length}, con hablante y texto: ${firma.split('/')[1]}`, bloques);
+      if (!bloques.length || firma.endsWith('/0')) DBG.volcar('Estructura de la región (no se pudo leer ningún bloque):', region);
+    }
+
     // Bloques que Meet ya quitó: se confirma lo pendiente de inmediato.
     for (const [bloque, st] of estados) {
       if (!vistos.has(bloque) || !bloque.isConnected) {
@@ -384,6 +396,11 @@
     config = { ...CONFIG_DEFECTO, ...nueva };
     document.documentElement.toggleAttribute('data-mt-ocultar', !!config.hideCaptions);
     DBG.setEnabled(!!config.debug);
+    if (config.debug && region) {
+      ultimaFirma = '';
+      DBG.volcar('Estructura de la región de subtítulos:', region);
+      procesarRegion();
+    }
   }
 
   // ── Ciclo de vida ──────────────────────────────────────────────────────

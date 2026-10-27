@@ -116,6 +116,35 @@
     console.groupEnd();
   }
 
+  /**
+   * Volcado legible de la estructura de un nodo (etiqueta, role, aria-*,
+   * clases cortas, <img> y texto propio). Es lo que hay que copiar y pegar
+   * cuando los selectores no calzan con el DOM de Meet.
+   */
+  function arbol(raiz, maxLineas = 120) {
+    const lineas = [];
+    const visitar = (n, prof) => {
+      if (lineas.length >= maxLineas || prof > 12) return;
+      const attrs = [];
+      for (const a of ['role', 'aria-label', 'aria-live', 'aria-hidden', 'jsname', 'data-participant-id']) {
+        if (n.hasAttribute(a)) attrs.push(`${a}="${n.getAttribute(a).slice(0, 40)}"`);
+      }
+      const clase = (n.getAttribute('class') || '').split(/\s+/).slice(0, 3).join('.');
+      const propio = [...n.childNodes]
+        .filter((c) => c.nodeType === 3 && c.nodeValue.trim())
+        .map((c) => c.nodeValue.trim())
+        .join(' ')
+        .slice(0, 60);
+      lineas.push(
+        `${'  '.repeat(prof)}<${n.tagName.toLowerCase()}${clase ? '.' + clase : ''}${attrs.length ? ' ' + attrs.join(' ') : ''}>` +
+          (propio ? ` "${propio}"` : '')
+      );
+      for (const h of n.children) visitar(h, prof + 1);
+    };
+    visitar(raiz, 0);
+    return lineas.join('\n');
+  }
+
   function activar() {
     if (activo) return;
     activo = true;
@@ -166,6 +195,10 @@
     /** Log condicional: solo imprime con el debug activo. */
     log(...args) {
       if (activo) console.log(PREFIJO, ESTILO, ...args);
+    },
+    /** Imprime la estructura de un nodo como texto copiable. */
+    volcar(titulo, el) {
+      if (activo && el) console.log(PREFIJO + '\n' + titulo + '\n' + arbol(el), ESTILO);
     },
   };
 })();
