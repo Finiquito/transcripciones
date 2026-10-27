@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Meet Transcriptor</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <header>
+    <div id="estado" class="estado" role="status">Esperando Meet…</div>
+
+    <select id="reunion" aria-label="Reunión a mostrar"></select>
+
+    <div class="botones">
+      <button id="copiar" type="button">Copiar</button>
+      <button id="exportar" type="button">Exportar .md</button>
+      <button id="eliminar" type="button" class="peligro" title="Eliminar esta reunión">Eliminar</button>
+    </div>
+
+    <details class="ajustes">
+      <summary>Ajustes</summary>
+      <label><input type="checkbox" id="ocultar"> Ocultar subtítulos en Meet (siguen activos)</label>
+      <label><input type="checkbox" id="debug"> Modo debug (consola de Meet)</label>
+      <label class="fila">
+        Estabilizar tras
+        <input type="number" id="estabilizar" min="500" max="10000" step="100"> ms
+      </label>
+    </details>
+  </header>
+
+  <main id="lista" aria-live="polite"></main>
+
+  <script src="db.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>

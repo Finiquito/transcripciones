@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "Meet Transcriptor",
+  "version": "1.0.0",
+  "description": "Captura los subtítulos en vivo de Google Meet y los guarda como transcripción (uso personal).",
+  "minimum_chrome_version": "114",
+  "permissions": ["sidePanel", "storage"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Abrir transcripción de Meet"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://meet.google.com/*"],
+      "js": ["selectors.js", "debug.js", "content.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ]
+}
