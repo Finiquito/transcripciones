@@ -55,6 +55,16 @@ select, input[type="number"], button {
 }
 select { width: 100%; }
 input[type="number"] { width: 6ch; padding: 2px 4px; }
+input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  padding: 2px 6px;
+}
 
 .botones { display: flex; gap: 6px; }
 button { cursor: pointer; }

@@ -20,9 +20,13 @@
     ocultar: $('ocultar'),
     debug: $('debug'),
     estabilizar: $('estabilizar'),
+    miNombre: $('miNombre'),
   };
 
-  const CONFIG_DEFECTO = { debug: false, hideCaptions: false, stabilizeMs: 1500 };
+  const CONFIG_DEFECTO = { debug: false, hideCaptions: false, stabilizeMs: 1500, myName: '' };
+  // Cómo llama Meet a quien usa la extensión, según el idioma de la interfaz.
+  const ETIQUETAS_YO = new Set(['tú', 'tu', 'you', 'você', 'voce', 'vous', 'du', 'tu']);
+  let miNombre = '';
   const PARCIAL_CADUCA_MS = 20000; // un parcial sin novedades se descarta
   const ESTADO_CADUCA_MS = 12000;  // sin latido de Meet → "sin Meet activo"
 
@@ -53,6 +57,11 @@
     return h % 360;
   }
 
+  /** Nombre a mostrar: cambia "Tú" por el nombre configurado (los datos guardados no se tocan). */
+  function nombreDe(speaker) {
+    return miNombre && ETIQUETAS_YO.has(speaker.trim().toLowerCase()) ? miNombre : speaker;
+  }
+
   /** Entradas ordenadas por hora de inicio (el orden de guardado puede variar). */
   function ordenadas(reunion) {
     return [...reunion.entries].sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
@@ -60,13 +69,13 @@
 
   function aTexto(reunion) {
     return ordenadas(reunion)
-      .map((e) => `[${hora(e.time)}] ${e.speaker}: ${e.text}`)
+      .map((e) => `[${hora(e.time)}] ${nombreDe(e.speaker)}: ${e.text}`)
       .join('\n');
   }
 
   function aMarkdown(reunion) {
     const cuerpo = ordenadas(reunion)
-      .map((e) => `**[${hora(e.time)}] ${e.speaker}:** ${e.text}`)
+      .map((e) => `**[${hora(e.time)}] ${nombreDe(e.speaker)}:** ${e.text}`)
       .join('\n\n');
     return [
       `# Transcripción de reunión ${reunion.code}`,
@@ -92,8 +101,8 @@
     cab.className = 'cabecera';
     const quien = document.createElement('span');
     quien.className = 'hablante';
-    quien.style.setProperty('--h', matiz(speaker));
-    quien.textContent = speaker;
+    quien.style.setProperty('--h', matiz(nombreDe(speaker)));
+    quien.textContent = nombreDe(speaker);
     const h = document.createElement('span');
     h.className = 'hora';
     h.textContent = horaTxt;
@@ -211,13 +220,17 @@
     el.ocultar.checked = c.hideCaptions;
     el.debug.checked = c.debug;
     el.estabilizar.value = c.stabilizeMs;
+    el.miNombre.value = c.myName;
+    miNombre = c.myName.trim();
   }
 
   async function guardarAjustes() {
     const ms = Math.min(10000, Math.max(500, Number(el.estabilizar.value) || CONFIG_DEFECTO.stabilizeMs));
     await chrome.storage.local.set({
-      mtConfig: { hideCaptions: el.ocultar.checked, debug: el.debug.checked, stabilizeMs: ms },
+      mtConfig: { hideCaptions: el.ocultar.checked, debug: el.debug.checked, stabilizeMs: ms, myName: el.miNombre.value.trim() },
     });
+    miNombre = el.miNombre.value.trim();
+    renderLista();
   }
 
   // ── Mensajes ───────────────────────────────────────────────────────────
@@ -254,6 +267,7 @@
   el.eliminar.addEventListener('click', eliminar);
   [el.ocultar, el.debug].forEach((i) => i.addEventListener('change', guardarAjustes));
   el.estabilizar.addEventListener('change', guardarAjustes);
+  el.miNombre.addEventListener('input', guardarAjustes);
 
   setInterval(renderEstado, 2000);
   cargarAjustes();
