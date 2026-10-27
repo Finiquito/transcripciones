@@ -114,7 +114,7 @@
   /**
    * Localiza los bloques de hablante dentro de la región:
    *  1. selectors.block, si está definido;
-   *  2. heurística por avatar: el ancestro más cercano a cada <img> que tenga texto;
+   *  2. heurística por avatar: el ancestro más cercano a cada <img> con nombre y texto;
    *  3. heurística por estructura: bajar por contenedores con un único hijo con
    *     texto y tomar los hijos con texto del primer nivel que se ramifique.
    */
@@ -128,7 +128,10 @@
       try { imgs = raiz.querySelectorAll(sel); } catch (_) { /* inválido */ }
       for (const img of imgs) {
         for (let n = img.parentElement; n && n !== raiz; n = n.parentElement) {
-          if (fragmentos(n).length) {
+          // El bloque es el ancestro más cercano que reúna al menos dos
+          // fragmentos (nombre + texto). El contenedor directo del avatar suele
+          // tener solo el nombre, y ese NO es el bloque.
+          if (fragmentos(n).length >= 2) {
             porAvatar.add(n);
             break;
           }

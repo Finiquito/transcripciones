@@ -33,7 +33,7 @@ globalThis.MT_SELECTORS = {
    * (Opcional) Cada bloque de un hablante DENTRO de la región.
    * Se evalúa con region.querySelectorAll(...).
    * Si lo dejas vacío, content.js usa una heurística: busca el ancestro
-   * mínimo con texto de cada avatar (`avatar` más abajo) y, si no hay
+   * mínimo con nombre y texto de cada avatar (`avatar` más abajo) y, si no hay
    * avatares, desciende por los contenedores de un solo hijo.
    * Ejemplo si algún día lo necesitas: ':scope > div > div'
    */
